@@ -3,6 +3,7 @@ import { renderCalendar } from './pages/calendar';
 import { renderDayDetail } from './pages/day-detail';
 import { renderPick } from './pages/pick';
 import { renderFarm } from './pages/farm';
+import { renderSchedule } from './pages/schedule';
 
 export function initApp() {
   const app = document.getElementById('app');
@@ -29,6 +30,9 @@ export function initApp() {
         break;
       case '/farm':
         renderFarm(app);
+        break;
+      case '/schedule':
+        renderSchedule(app);
         break;
       default:
         renderCalendar(app);
@@ -610,6 +614,197 @@ function injectStyles() {
     .pengzu-item:last-child {
       border-bottom: none;
     }
+
+    /* ========== 农事排活 ========== */
+    .schedule-intro p { font-size: 13px; color: var(--text-light); line-height: 1.8; }
+    .schedule-intro b { color: var(--primary); }
+
+    .schedule-plotbar, .add-crop-bar, .add-task-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .schedule-input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      color: var(--text);
+    }
+
+    .schedule-add-btn { width: auto; flex: 0 0 auto; padding: 10px 18px; }
+
+    .empty-hint {
+      text-align: center;
+      color: var(--text-light);
+      padding: 40px 0;
+    }
+
+    .plot-card { border-left: 4px solid var(--secondary); }
+
+    .plot-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .plot-name { margin: 0; border: none; padding: 0; color: var(--secondary); font-size: 18px; }
+
+    .plot-tools { display: flex; gap: 6px; }
+
+    .mini-btn {
+      padding: 4px 10px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .mini-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .mini-btn.primary { border-color: var(--secondary); color: var(--secondary); }
+    .mini-btn.danger { border-color: #c0392b; color: #c0392b; }
+    .mini-btn.danger:hover { background: #fdecea; }
+
+    /* 超载提示 */
+    .alert-box {
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    .overload-box {
+      background: #fff4e5;
+      border: 1px solid #e0a040;
+    }
+    .alert-title { font-weight: bold; margin-bottom: 6px; color: #8a5a00; }
+    .overload-row {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      padding: 4px 0; border-top: 1px dashed #e8c890;
+    }
+    .overload-row:first-of-type { border-top: none; }
+    .overload-date { font-weight: bold; color: #8a5a00; white-space: nowrap; }
+    .overload-items { color: var(--text); }
+
+    /* 作物计划 */
+    .plan-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin: 12px 0;
+      background: #fffdf8;
+    }
+    .plan-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .plan-title { font-size: 16px; font-weight: bold; color: var(--primary); }
+    .plan-sub { font-size: 12px; color: var(--text-light); }
+    .harvest-wrap {
+      display: flex; align-items: center; gap: 6px;
+      margin-left: auto;
+      font-size: 13px;
+    }
+    .harvest-cap { color: var(--text-light); }
+    .harvest-input, .node-date-input {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+    }
+    .harvest-input { border-color: var(--primary); color: var(--primary); font-weight: bold; }
+
+    .term-chip {
+      display: inline-block;
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 10px;
+      background: #e8f5e9;
+      color: var(--secondary);
+      white-space: nowrap;
+    }
+    .term-chip.strong { background: var(--secondary); color: white; }
+
+    /* 时间轴 */
+    .timeline {
+      position: relative;
+      margin: 10px 0 6px 12px;
+      padding-left: 18px;
+      border-left: 2px dashed var(--border);
+    }
+    .node-row {
+      position: relative;
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      align-items: flex-start;
+    }
+    .node-dot {
+      position: absolute;
+      left: -25px;
+      top: 12px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--secondary);
+      border: 2px solid var(--card-bg);
+      box-shadow: 0 0 0 1px var(--secondary);
+    }
+    .node-dot.phase-harvest { background: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .node-dot.phase-sow { background: #8b5a00; box-shadow: 0 0 0 1px #8b5a00; }
+    .node-dot.phase-topdress { background: #1565c0; box-shadow: 0 0 0 1px #1565c0; }
+    .node-dot.phase-spray { background: #6a1b9a; box-shadow: 0 0 0 1px #6a1b9a; }
+    .node-dot.phase-water-control { background: #00838f; box-shadow: 0 0 0 1px #00838f; }
+    .node-dot.phase-custom { background: #999; box-shadow: 0 0 0 1px #999; }
+
+    .node-main { flex: 1; min-width: 0; }
+    .node-line1 {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .node-label { font-weight: bold; font-size: 14px; }
+    .node-row.is-harvest .node-label { color: var(--accent); }
+    .lock-badge, .custom-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: normal;
+      margin-left: 6px;
+      padding: 0 6px;
+      border-radius: 8px;
+      background: #eee;
+      color: var(--text-light);
+    }
+    .custom-badge { background: #e3f2fd; color: #1565c0; }
+    .node-weekday { font-size: 12px; color: var(--text-light); }
+
+    .node-ops { display: flex; gap: 4px; flex-shrink: 0; }
+
+    /* 标记 */
+    .flag-line {
+      margin-top: 4px;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .flag-warn { background: #fdecea; color: #a03020; }
+    .flag-info { background: #e8f4fd; color: #1565c0; }
+    .tag-warn { color: var(--accent); font-weight: bold; }
+
+    .add-task-bar { margin-top: 10px; margin-bottom: 0; }
+    .add-task-bar .schedule-input { flex: 1; min-width: 120px; }
+
+    /* ========== /农事排活 ========== */
 
     /* 响应式 */
     @media (max-width: 600px) {
