@@ -171,14 +171,12 @@ export function getHourGanZhi(dayGanZhi: string, hour: number): string {
   return TIAN_GAN[hourGanIndex] + DI_ZHI[hourZhiIndex];
 }
 
-// 节气计算（简化版，使用天文算法近似）
-const SOLAR_TERM_OFFSETS = [6, 20, 4, 19, 6, 21, 5, 20, 6, 21, 6, 21, 7, 23, 8, 23, 8, 23, 8, 24, 8, 22, 7, 22];
+// 节气计算（精确查表，1900-2100；交节当日按北京时间）
+import { getSolarTermDatesExact } from './solar-terms';
 
 export function getSolarTerm(year: number, month: number, day: number): string | undefined {
   const termIndex = (month - 1) * 2;
   const termIndex2 = (month - 1) * 2 + 1;
-
-  // 使用更精确的节气日期计算
   const dates = getSolarTermDates(year);
 
   if (day === dates[termIndex]) return SOLAR_TERMS[termIndex];
@@ -186,27 +184,9 @@ export function getSolarTerm(year: number, month: number, day: number): string |
   return undefined;
 }
 
-// 获取某年所有节气的日期（简化算法）
+// 获取某年所有节气的日期（每月两个，返回与 SOLAR_TERMS 对齐的“日”数组）
 export function getSolarTermDates(year: number): number[] {
-  const dates: number[] = [];
-  for (let i = 0; i < 24; i++) {
-    // 基于1900年的偏移，每年约偏移6小时
-    const baseYear = 1900;
-    const yearDiff = year - baseYear;
-    let day = SOLAR_TERM_OFFSETS[i];
-
-    // 粗略修正：每4年闰年影响
-    day += Math.floor(yearDiff * 0.25) - Math.floor(yearDiff / 100) + Math.floor(yearDiff / 400);
-
-    // 个别节气修正
-    const month = Math.floor(i / 2) + 1;
-    if (day > (month === 2 && isLeapYear(year) ? 29 : [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1])) {
-      day -= (month === 2 && isLeapYear(year) ? 29 : [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]);
-    }
-
-    dates.push(day);
-  }
-  return dates;
+  return getSolarTermDatesExact(year).map(t => t.day);
 }
 
 // 获取某月所有节气信息

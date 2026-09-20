@@ -12,7 +12,10 @@ export function renderFarm(app: HTMLElement) {
   const backBtn = createElement('button', 'back-btn', '◀ 返回');
   backBtn.addEventListener('click', () => router.navigate('/'));
   const title = createElement('h1', 'page-title', '节气农事表');
-  header.append(backBtn, title);
+  const scheduleLink = createElement('a', 'quick-link', '农事排程') as HTMLAnchorElement;
+  scheduleLink.href = '/schedule';
+  scheduleLink.addEventListener('click', (e) => { e.preventDefault(); router.navigate('/schedule'); });
+  header.append(backBtn, title, scheduleLink);
 
   // 节气列表
   const termList = createElement('div', 'term-list');
